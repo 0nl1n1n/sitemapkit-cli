@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+import { realpathSync } from "node:fs";
+import { pathToFileURL } from "node:url";
+
 const COMMANDS = new Set(["discover", "extract", "full"]);
 
 export function parseArguments(argv) {
@@ -72,7 +75,8 @@ async function main() {
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 }
 
-const isEntrypoint = process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).href;
+const isEntrypoint =
+  process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href;
 if (isEntrypoint) {
   main().catch((error) => {
     process.stderr.write(`${error.message}\n`);

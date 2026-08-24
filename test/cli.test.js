@@ -1,7 +1,14 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 import http from "node:http";
+import { execFile } from "node:child_process";
+import { mkdtemp, symlink } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { promisify } from "node:util";
 import { parseArguments, requestSitemapKit } from "../bin/sitemapkit.js";
+
+const execFileAsync = promisify(execFile);
 
 let server;
 let baseUrl;
@@ -68,5 +75,21 @@ test("requires an API key", async () => {
   await assert.rejects(
     requestSitemapKit({ command: "discover", url: "https://example.com" }, {}),
     /Set SITEMAPKIT_API_KEY/,
+  );
+});
+
+test("runs when invoked through an npm-style symlink", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "sitemapkit-cli-"));
+  const executable = join(directory, "sitemapkit");
+  await symlink(new URL("../bin/sitemapkit.js", import.meta.url), executable);
+
+  await assert.rejects(
+    execFileAsync(executable, ["discover", "https://example.com"], {
+      env: { PATH: process.env.PATH },
+    }),
+    (error) => {
+      assert.match(error.stderr, /Set SITEMAPKIT_API_KEY/);
+      return true;
+    },
   );
 });
