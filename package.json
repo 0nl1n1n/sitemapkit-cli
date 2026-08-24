@@ -1,0 +1,23 @@
+{
+  "name": "sitemapkit-cli",
+  "version": "0.1.0",
+  "description": "Extract URLs from XML sitemaps with the SitemapKit API",
+  "type": "module",
+  "bin": {
+    "sitemapkit": "./bin/sitemapkit.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "sitemap",
+    "sitemap-scraper",
+    "sitemap-api",
+    "xml-sitemap",
+    "seo"
+  ],
+  "license": "MIT"
+}
