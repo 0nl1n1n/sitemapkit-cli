@@ -2,11 +2,12 @@ import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 import http from "node:http";
 import { execFile } from "node:child_process";
-import { mkdtemp, symlink } from "node:fs/promises";
+import { mkdtemp, readFile, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { parseArguments, requestSitemapKit } from "../bin/sitemapkit.js";
+import { parseActionInputs, runAction } from "../bin/action.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -49,6 +50,21 @@ test("parses a full extraction command", () => {
   });
 });
 
+test("maps GitHub Action inputs to a CLI request", () => {
+  assert.deepEqual(
+    parseActionInputs({
+      INPUT_COMMAND: "extract",
+      INPUT_URL: "https://example.com/sitemap.xml",
+      INPUT_MAX_URLS: "250",
+    }),
+    {
+      command: "extract",
+      url: "https://example.com/sitemap.xml",
+      maxUrls: 250,
+    },
+  );
+});
+
 test("rejects invalid limits", () => {
   assert.throws(
     () => parseArguments(["extract", "https://example.com/sitemap.xml", "--max-urls", "50001"]),
@@ -69,6 +85,31 @@ test("calls the selected SitemapKit endpoint", async () => {
     apiKey: "sk_test",
     body: { url: "https://example.com", maxUrls: 200 },
   });
+});
+
+test("runs as a GitHub Action and writes outputs", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "sitemapkit-action-"));
+  const outputFile = join(directory, "result.json");
+  const githubOutput = join(directory, "github-output");
+
+  await runAction({
+    INPUT_API_KEY: "sk_test",
+    INPUT_COMMAND: "full",
+    INPUT_URL: "https://example.com",
+    INPUT_MAX_URLS: "200",
+    INPUT_OUTPUT_FILE: outputFile,
+    SITEMAPKIT_API_BASE_URL: baseUrl,
+    GITHUB_OUTPUT: githubOutput,
+  });
+
+  assert.deepEqual(JSON.parse(await readFile(outputFile, "utf8")), {
+    success: true,
+    data: { totalUrls: 2 },
+  });
+  assert.equal(
+    await readFile(githubOutput, "utf8"),
+    `result-file=${outputFile}\ntotal-urls=2\n`,
+  );
 });
 
 test("requires an API key", async () => {

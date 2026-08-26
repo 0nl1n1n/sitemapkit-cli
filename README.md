@@ -30,6 +30,29 @@ npx github:0nl1n1n/sitemapkit-cli discover https://example.com
 
 The command writes the API response as JSON to standard output. Errors go to standard error and return a non-zero exit code, so the CLI works in shell pipelines and CI jobs.
 
+## Use it in GitHub Actions
+
+Add the API key as a repository secret named `SITEMAPKIT_API_KEY`, then run the extractor in a workflow:
+
+```yaml
+- name: Extract sitemap URLs
+  id: sitemap
+  uses: 0nl1n1n/sitemapkit-cli@v1
+  with:
+    api-key: ${{ secrets.SITEMAPKIT_API_KEY }}
+    command: extract
+    url: https://example.com/sitemap.xml
+    max-urls: 5000
+
+- name: Upload the URL inventory
+  uses: actions/upload-artifact@v4
+  with:
+    name: sitemap-urls
+    path: ${{ steps.sitemap.outputs.result-file }}
+```
+
+The action writes the full API response to `sitemapkit-result.json` by default. Its `total-urls` output contains the extracted URL count. Use `discover` to find sitemap files without extracting them, or `full` to discover and extract in one step.
+
 ## Install from source
 
 ```bash

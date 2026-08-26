@@ -1,0 +1,31 @@
+name: SitemapKit XML sitemap extractor
+description: Discover XML sitemaps and extract their URLs into a JSON artifact
+branding:
+  icon: map
+  color: blue
+inputs:
+  api-key:
+    description: SitemapKit API key from https://sitemapkit.com/register
+    required: true
+  url:
+    description: Domain URL for discover/full, or sitemap URL for extract
+    required: true
+  command:
+    description: discover, extract, or full
+    required: false
+    default: full
+  max-urls:
+    description: Maximum URLs to return for extract/full (1-50000)
+    required: false
+  output-file:
+    description: JSON file written in the workspace
+    required: false
+    default: sitemapkit-result.json
+outputs:
+  result-file:
+    description: Path to the JSON result file
+  total-urls:
+    description: Number of extracted URLs
+runs:
+  using: node20
+  main: bin/action.js
