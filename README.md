@@ -30,6 +30,16 @@ npx github:0nl1n1n/sitemapkit-cli discover https://example.com
 
 The command writes the API response as JSON to standard output. Errors go to standard error and return a non-zero exit code, so the CLI works in shell pipelines and CI jobs.
 
+## Try the browser tools
+
+You can test the same workflow before adding an API key:
+
+- [Find sitemap files for a domain](https://sitemapkit.com/sitemap-finder)
+- [Count and extract URLs from a sitemap](https://sitemapkit.com/tools/sitemap-extractor)
+- [Validate sitemap XML and `lastmod` dates](https://sitemapkit.com/tools/sitemap-checker)
+
+The finder starts from a domain. The extractor and checker accept a sitemap URL or pasted XML.
+
 ## Use it in GitHub Actions
 
 Add the API key as a repository secret named `SITEMAPKIT_API_KEY`, then run the extractor in a workflow:
