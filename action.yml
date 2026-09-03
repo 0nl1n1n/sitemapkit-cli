@@ -1,5 +1,5 @@
-name: SitemapKit XML sitemap extractor
-description: Discover XML sitemaps and extract their URLs into a JSON artifact
+name: SitemapKit XML sitemap crawler
+description: Discover, parse, and extract XML sitemap URLs into a JSON artifact
 branding:
   icon: map
   color: blue

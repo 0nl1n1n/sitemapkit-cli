@@ -1,7 +1,7 @@
 {
   "name": "sitemapkit-cli",
-  "version": "1.0.0",
-  "description": "CLI and GitHub Action to extract XML sitemap URLs with the SitemapKit API",
+  "version": "1.1.0",
+  "description": "CLI and GitHub Action to discover, crawl, parse, and extract XML sitemap URLs with the SitemapKit API",
   "type": "module",
   "bin": {
     "sitemapkit": "./bin/sitemapkit.js"
@@ -17,7 +17,20 @@
     "sitemap-scraper",
     "sitemap-api",
     "xml-sitemap",
+    "sitemap-parser",
+    "sitemap-crawler",
+    "url-extractor",
+    "github-actions",
+    "seo-tools",
     "seo"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "homepage": "https://sitemapkit.com/docs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0nl1n1n/sitemapkit-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/0nl1n1n/sitemapkit-cli/issues"
+  }
 }

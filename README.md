@@ -1,6 +1,6 @@
 # SitemapKit CLI
 
-Extract URLs from XML sitemaps without writing a crawler. The CLI can discover sitemap files, parse one sitemap recursively, or run both steps for a domain.
+Discover XML sitemaps, parse nested sitemap indexes, and extract page URLs without writing a crawler. SitemapKit CLI works in local shell scripts, CI pipelines, and GitHub Actions for SEO audits, URL inventories, indexing checks, and content workflows.
 
 It uses the [SitemapKit sitemap extraction API](https://sitemapkit.com/docs). Create an API key at [sitemapkit.com/register](https://sitemapkit.com/register); the free plan includes 100 requests per month.
 
@@ -39,6 +39,12 @@ You can test the same workflow before adding an API key:
 - [Validate sitemap XML and `lastmod` dates](https://sitemapkit.com/tools/sitemap-checker)
 
 The finder starts from a domain. The extractor and checker accept a sitemap URL or pasted XML.
+
+## Monitor newly published pages
+
+The CLI is intended for on-demand and CI runs. To keep a durable URL baseline, detect new pages automatically, and ping a signed webhook, use [SitemapKit Monitoring](https://sitemapkit.com/sitemap-monitoring).
+
+The free plan includes one daily monitor. Paid plans add more websites, larger sitemaps, and checks as often as every hour. Webhook payloads and HMAC verification are documented in the [monitoring webhook guide](https://sitemapkit.com/sitemap-monitoring/webhooks).
 
 ## Use it in GitHub Actions
 
@@ -81,6 +87,16 @@ sitemapkit full <domain-url> [--max-urls <1-50000>]
 ```
 
 Set `SITEMAPKIT_API_BASE_URL` only when testing against another compatible API origin. It defaults to `https://api.sitemapkit.com`.
+
+## API limits
+
+| Plan | API requests/month | URLs per extraction |
+|------|-------------------:|--------------------:|
+| Free | 100 | 1,000 |
+| Starter | 5,000 | 10,000 |
+| Pro | 50,000 | 50,000 |
+
+See current API and monitoring allowances on the [pricing page](https://sitemapkit.com/pricing).
 
 ## License
 
