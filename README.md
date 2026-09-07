@@ -1,34 +1,31 @@
 # SitemapKit CLI
 
-Discover XML sitemaps, parse nested sitemap indexes, and extract page URLs without writing a crawler. SitemapKit CLI works in local shell scripts, CI pipelines, and GitHub Actions for SEO audits, URL inventories, indexing checks, and content workflows.
+Parse XML sitemaps and nested sitemap indexes from the command line. The `extract` command runs locally without an account. Domain discovery and the combined `full` workflow use the SitemapKit API.
 
-It uses the [SitemapKit sitemap extraction API](https://sitemapkit.com/docs). Create an API key at [sitemapkit.com/register](https://sitemapkit.com/register); the free plan includes 100 requests per month.
+SitemapKit CLI works in shell scripts, CI pipelines, and GitHub Actions for URL inventories and content workflows.
 
 ## Requirements
 
 - Node.js 18 or newer
-- A SitemapKit API key
+- A SitemapKit API key for `discover`, `full`, and the GitHub Action
 
 ## Run it
 
-```bash
-export SITEMAPKIT_API_KEY=sk_live_...
-npx github:0nl1n1n/sitemapkit-cli full https://example.com
-```
-
-Extract one known sitemap:
+Extract one known sitemap or sitemap index. This follows nested indexes up to five levels, decompresses `.xml.gz` responses, and needs no API key:
 
 ```bash
 npx github:0nl1n1n/sitemapkit-cli extract https://example.com/sitemap.xml --max-urls 5000
 ```
 
-Find sitemap files without extracting their URLs:
+To discover sitemap files from a domain, create a key at [sitemapkit.com/register](https://sitemapkit.com/register). The free API plan includes 100 requests per month.
 
 ```bash
+export SITEMAPKIT_API_KEY=sk_live_...
 npx github:0nl1n1n/sitemapkit-cli discover https://example.com
+npx github:0nl1n1n/sitemapkit-cli full https://example.com
 ```
 
-The command writes the API response as JSON to standard output. Errors go to standard error and return a non-zero exit code, so the CLI works in shell pipelines and CI jobs.
+Each command writes JSON to standard output. Errors go to standard error and return a non-zero exit code, so the CLI works in shell pipelines and CI jobs.
 
 ## Try the browser tools
 
@@ -83,7 +80,7 @@ The action writes the full API response to `sitemapkit-result.json` by default. 
 git clone https://github.com/0nl1n1n/sitemapkit-cli.git
 cd sitemapkit-cli
 npm link
-sitemapkit full https://example.com
+sitemapkit extract https://example.com/sitemap.xml
 ```
 
 ## Commands
@@ -95,6 +92,8 @@ sitemapkit full <domain-url> [--max-urls <1-50000>]
 ```
 
 Set `SITEMAPKIT_API_BASE_URL` only when testing against another compatible API origin. It defaults to `https://api.sitemapkit.com`.
+
+When `SITEMAPKIT_API_KEY` is set, `extract` uses the API as well. That route adds managed fetching for bot-protected sites. Leave the key unset to parse the sitemap locally.
 
 ## API limits
 

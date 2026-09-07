@@ -2,8 +2,10 @@
 
 import { realpathSync } from "node:fs";
 import { pathToFileURL } from "node:url";
+import { gunzipSync } from "node:zlib";
 
 const COMMANDS = new Set(["discover", "extract", "full"]);
+const MAX_SITEMAP_BYTES = 50 * 1024 * 1024;
 
 export function parseArguments(argv) {
   const [command, url, ...options] = argv;
@@ -69,9 +71,105 @@ export async function requestSitemapKit({ command, url, maxUrls }, env = process
   }
 }
 
+function decodeXml(value) {
+  return value
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCodePoint(Number.parseInt(code, 16)))
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&");
+}
+
+function tagValue(xml, tag) {
+  const match = xml.match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, "i"));
+  return match ? decodeXml(match[1].trim()) : undefined;
+}
+
+function blocks(xml, tag) {
+  return [...xml.matchAll(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, "gi"))]
+    .map((match) => match[1]);
+}
+
+async function fetchSitemapXml(url) {
+  const response = await fetch(url, { headers: { accept: "application/xml,text/xml,*/*" } });
+  if (!response.ok) {
+    throw new Error(`Sitemap returned ${response.status}: ${response.statusText}`);
+  }
+  const bytes = Buffer.from(await response.arrayBuffer());
+  if (bytes.length > MAX_SITEMAP_BYTES) {
+    throw new Error(`Sitemap exceeds the 50 MB limit: ${url}`);
+  }
+  const isGzip = bytes[0] === 0x1f && bytes[1] === 0x8b;
+  const xml = isGzip ? gunzipSync(bytes, { maxOutputLength: MAX_SITEMAP_BYTES }) : bytes;
+  return xml.toString("utf8");
+}
+
+export async function extractSitemapLocally(url, maxUrls = 50_000) {
+  const seenSitemaps = new Set();
+  const seenUrls = new Set();
+  const urls = [];
+  let truncated = false;
+
+  async function visit(sitemapUrl, depth) {
+    if (seenSitemaps.has(sitemapUrl) || truncated) return;
+    if (depth > 5) throw new Error("Sitemap index nesting exceeds 5 levels");
+    seenSitemaps.add(sitemapUrl);
+    const xml = await fetchSitemapXml(sitemapUrl);
+
+    if (/<sitemapindex(?:\s|>)/i.test(xml)) {
+      for (const block of blocks(xml, "sitemap")) {
+        const childUrl = tagValue(block, "loc");
+        if (childUrl) await visit(new URL(childUrl, sitemapUrl).href, depth + 1);
+        if (truncated) break;
+      }
+      return;
+    }
+    if (!/<urlset(?:\s|>)/i.test(xml)) {
+      throw new Error(`Response is not an XML sitemap: ${sitemapUrl}`);
+    }
+
+    for (const block of blocks(xml, "url")) {
+      const loc = tagValue(block, "loc");
+      if (!loc || seenUrls.has(loc)) continue;
+      if (urls.length >= maxUrls) {
+        truncated = true;
+        break;
+      }
+      seenUrls.add(loc);
+      const entry = { loc };
+      for (const tag of ["lastmod", "changefreq", "priority"]) {
+        const value = tagValue(block, tag);
+        if (value) entry[tag] = value;
+      }
+      urls.push(entry);
+    }
+  }
+
+  await visit(url, 0);
+  return {
+    success: true,
+    data: {
+      sitemapUrl: url,
+      sitemapsProcessed: seenSitemaps.size,
+      totalUrls: urls.length,
+      truncated,
+      urls,
+    },
+  };
+}
+
+export async function runSitemapCommand(input, env = process.env) {
+  if (input.command === "extract" && !env.SITEMAPKIT_API_KEY) {
+    return extractSitemapLocally(input.url, input.maxUrls);
+  }
+  return requestSitemapKit(input, env);
+}
+
 async function main() {
   const input = parseArguments(process.argv.slice(2));
-  const result = await requestSitemapKit(input);
+  const result = await runSitemapCommand(input);
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 }
 

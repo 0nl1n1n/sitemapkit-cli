@@ -6,7 +6,8 @@ import { mkdtemp, readFile, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
-import { parseArguments, requestSitemapKit } from "../bin/sitemapkit.js";
+import { gzipSync } from "node:zlib";
+import { parseArguments, requestSitemapKit, runSitemapCommand } from "../bin/sitemapkit.js";
 import { parseActionInputs, runAction } from "../bin/action.js";
 
 const execFileAsync = promisify(execFile);
@@ -17,6 +18,28 @@ let request;
 
 before(async () => {
   server = http.createServer((incoming, response) => {
+    if (incoming.url === "/sitemap-index.xml") {
+      response.writeHead(200, { "content-type": "application/xml" });
+      response.end(`<?xml version="1.0"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+        <sitemap><loc>${baseUrl}/pages.xml</loc></sitemap>
+      </sitemapindex>`);
+      return;
+    }
+    if (incoming.url === "/pages.xml") {
+      response.writeHead(200, { "content-type": "application/xml" });
+      response.end(`<?xml version="1.0"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+        <url><loc>https://example.com/</loc><lastmod>2026-09-01</lastmod></url>
+        <url><loc>https://example.com/search?a=1&amp;b=2</loc></url>
+      </urlset>`);
+      return;
+    }
+    if (incoming.url === "/pages.xml.gz") {
+      response.writeHead(200, { "content-type": "application/gzip" });
+      response.end(gzipSync(`<?xml version="1.0"?><urlset>
+        <url><loc>https://example.com/compressed</loc></url>
+      </urlset>`));
+      return;
+    }
     let body = "";
     incoming.setEncoding("utf8");
     incoming.on("data", (chunk) => {
@@ -117,6 +140,37 @@ test("requires an API key", async () => {
     requestSitemapKit({ command: "discover", url: "https://example.com" }, {}),
     /Set SITEMAPKIT_API_KEY/,
   );
+});
+
+test("extracts a sitemap index locally without an API key", async () => {
+  const result = await runSitemapCommand(
+    { command: "extract", url: `${baseUrl}/sitemap-index.xml`, maxUrls: 10 },
+    {},
+  );
+
+  assert.deepEqual(result, {
+    success: true,
+    data: {
+      sitemapUrl: `${baseUrl}/sitemap-index.xml`,
+      sitemapsProcessed: 2,
+      totalUrls: 2,
+      truncated: false,
+      urls: [
+        { loc: "https://example.com/", lastmod: "2026-09-01" },
+        { loc: "https://example.com/search?a=1&b=2" },
+      ],
+    },
+  });
+});
+
+test("decompresses a gzipped sitemap locally", async () => {
+  const result = await runSitemapCommand(
+    { command: "extract", url: `${baseUrl}/pages.xml.gz` },
+    {},
+  );
+
+  assert.equal(result.data.totalUrls, 1);
+  assert.deepEqual(result.data.urls, [{ loc: "https://example.com/compressed" }]);
 });
 
 test("runs when invoked through an npm-style symlink", async () => {
