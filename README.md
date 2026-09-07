@@ -40,6 +40,14 @@ You can test the same workflow before adding an API key:
 
 The finder starts from a domain. The extractor and checker accept a sitemap URL or pasted XML.
 
+To prepare or compare files locally:
+
+- [Generate sitemap.xml from a URL list or CSV](https://sitemapkit.com/tools/sitemap-generator)
+- [Split a sitemap at the 50,000 URL and 50 MB limits](https://sitemapkit.com/tools/sitemap-splitter)
+- [Compare two XML sitemaps](https://sitemapkit.com/tools/sitemap-diff)
+
+These tools run in the browser and do not require an API key.
+
 ## Monitor newly published pages
 
 The CLI is intended for on-demand and CI runs. To keep a durable URL baseline, detect new pages automatically, and ping a signed webhook, use [SitemapKit Monitoring](https://sitemapkit.com/sitemap-monitoring).
