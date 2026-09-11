@@ -7,7 +7,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { gzipSync } from "node:zlib";
-import { parseArguments, requestSitemapKit, runSitemapCommand } from "../bin/sitemapkit.js";
+import { formatCommandResult, parseArguments, requestSitemapKit, runSitemapCommand } from "../bin/sitemapkit.js";
 import { parseActionInputs, runAction } from "../bin/action.js";
 
 const execFileAsync = promisify(execFile);
@@ -71,6 +71,32 @@ test("parses a full extraction command", () => {
     url: "https://example.com",
     maxUrls: 200,
   });
+});
+
+test("prints extracted locations as a newline-delimited URL list", () => {
+  const input = parseArguments([
+    "extract",
+    "https://example.com/sitemap.xml",
+    "--format",
+    "urls",
+  ]);
+
+  assert.equal(input.format, "urls");
+  assert.equal(
+    formatCommandResult(
+      {
+        success: true,
+        data: {
+          urls: [
+            { loc: "https://example.com/" },
+            { loc: "https://example.com/search?a=1&b=2" },
+          ],
+        },
+      },
+      input.format,
+    ),
+    "https://example.com/\nhttps://example.com/search?a=1&b=2\n",
+  );
 });
 
 test("maps GitHub Action inputs to a CLI request", () => {

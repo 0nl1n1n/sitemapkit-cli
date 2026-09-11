@@ -12,7 +12,7 @@ export function parseArguments(argv) {
 
   if (!COMMANDS.has(command) || !url) {
     throw new Error(
-      "Usage: sitemapkit <discover|extract|full> <url> [--max-urls <1-50000>]",
+      "Usage: sitemapkit <discover|extract|full> <url> [--max-urls <1-50000>] [--format <json|urls>]",
     );
   }
 
@@ -23,17 +23,37 @@ export function parseArguments(argv) {
   }
 
   let maxUrls;
-  if (options.length > 0) {
-    if (options.length !== 2 || options[0] !== "--max-urls" || command === "discover") {
-      throw new Error("Only extract and full accept --max-urls <1-50000>");
-    }
-    maxUrls = Number(options[1]);
-    if (!Number.isInteger(maxUrls) || maxUrls < 1 || maxUrls > 50_000) {
-      throw new Error("--max-urls must be an integer between 1 and 50000");
+  let format;
+  while (options.length > 0) {
+    const option = options.shift();
+    const value = options.shift();
+    if (option === "--max-urls" && command !== "discover") {
+      maxUrls = Number(value);
+      if (!Number.isInteger(maxUrls) || maxUrls < 1 || maxUrls > 50_000) {
+        throw new Error("--max-urls must be an integer between 1 and 50000");
+      }
+    } else if (option === "--format" && command !== "discover") {
+      if (!new Set(["json", "urls"]).has(value)) {
+        throw new Error("--format must be json or urls");
+      }
+      format = value;
+    } else {
+      throw new Error("Only extract and full accept --max-urls and --format options");
     }
   }
 
-  return { command, url, maxUrls };
+  return { command, url, maxUrls, ...(format ? { format } : {}) };
+}
+
+export function formatCommandResult(result, format = "json") {
+  if (format === "urls") {
+    const urls = result?.data?.urls;
+    if (!Array.isArray(urls)) {
+      throw new Error("The response does not contain extracted URLs");
+    }
+    return `${urls.map((entry) => entry.loc).join("\n")}\n`;
+  }
+  return `${JSON.stringify(result, null, 2)}\n`;
 }
 
 export async function requestSitemapKit({ command, url, maxUrls }, env = process.env) {
@@ -170,7 +190,7 @@ export async function runSitemapCommand(input, env = process.env) {
 async function main() {
   const input = parseArguments(process.argv.slice(2));
   const result = await runSitemapCommand(input);
-  process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+  process.stdout.write(formatCommandResult(result, input.format));
 }
 
 const isEntrypoint =

@@ -27,6 +27,12 @@ npx github:0nl1n1n/sitemapkit-cli full https://example.com
 
 Each command writes JSON to standard output. Errors go to standard error and return a non-zero exit code, so the CLI works in shell pipelines and CI jobs.
 
+Use `--format urls` with `extract` or `full` when a pipeline needs one URL per line instead of the full JSON response:
+
+```bash
+npx github:0nl1n1n/sitemapkit-cli extract https://example.com/sitemap.xml --format urls > urls.txt
+```
+
 ## Try the browser tools
 
 You can test the same workflow before adding an API key:
@@ -87,8 +93,8 @@ sitemapkit extract https://example.com/sitemap.xml
 
 ```text
 sitemapkit discover <domain-url>
-sitemapkit extract <sitemap-url> [--max-urls <1-50000>]
-sitemapkit full <domain-url> [--max-urls <1-50000>]
+sitemapkit extract <sitemap-url> [--max-urls <1-50000>] [--format <json|urls>]
+sitemapkit full <domain-url> [--max-urls <1-50000>] [--format <json|urls>]
 ```
 
 Set `SITEMAPKIT_API_BASE_URL` only when testing against another compatible API origin. It defaults to `https://api.sitemapkit.com`.
