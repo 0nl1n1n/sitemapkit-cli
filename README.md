@@ -35,7 +35,7 @@ npx github:0nl1n1n/sitemapkit-cli extract https://example.com/sitemap.xml --form
 
 ## Try the browser tools
 
-You can test the same workflow before adding an API key:
+You can test the same workflow before adding an API key. If you prefer to check by hand, [follow the seven ways to find a website sitemap](https://sitemapkit.com/guides/how-to-find-sitemap).
 
 - [Find sitemap files for a domain](https://sitemapkit.com/sitemap-finder)
 - [Count and extract URLs from a sitemap](https://sitemapkit.com/tools/sitemap-extractor)
