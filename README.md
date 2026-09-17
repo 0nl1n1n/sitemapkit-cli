@@ -1,6 +1,6 @@
 # SitemapKit CLI
 
-Parse XML sitemaps and nested sitemap indexes from the command line. The `extract` command runs locally without an account. Domain discovery and the combined `full` workflow use the SitemapKit API.
+Parse XML sitemaps and nested sitemap indexes from the command line. The `extract` command runs locally without an account. Domain discovery and the combined `full` workflow use the [SitemapKit extraction API](https://sitemapkit.com/).
 
 SitemapKit CLI works in shell scripts, CI pipelines, and GitHub Actions for URL inventories and content workflows.
 
