@@ -1,7 +1,7 @@
 {
   "name": "sitemapkit-cli",
-  "version": "1.2.0",
-  "description": "CLI to parse XML sitemaps locally, plus SitemapKit API discovery and GitHub Action workflows",
+  "version": "1.2.1",
+  "description": "XML sitemap extractor CLI and GitHub Action with nested index, gzip, API discovery, and URL output",
   "type": "module",
   "bin": {
     "sitemapkit": "./bin/sitemapkit.js"

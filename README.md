@@ -1,6 +1,6 @@
-# SitemapKit CLI
+# XML Sitemap Extractor CLI and GitHub Action
 
-Parse XML sitemaps and nested sitemap indexes from the command line. The `extract` command runs locally without an account. Domain discovery and the combined `full` workflow use the [SitemapKit extraction API](https://sitemapkit.com/).
+SitemapKit is a command-line XML sitemap extractor and GitHub Action. It parses URL sitemaps, follows nested sitemap indexes, decompresses `.xml.gz` files, and prints JSON or one URL per line. The `extract` command runs locally without an account. Domain discovery and the combined `full` workflow use the [SitemapKit extraction API](https://sitemapkit.com/).
 
 SitemapKit CLI works in shell scripts, CI pipelines, and GitHub Actions for URL inventories and content workflows.
 
@@ -17,7 +17,7 @@ Extract one known sitemap or sitemap index. This follows nested indexes up to fi
 npx github:0nl1n1n/sitemapkit-cli extract https://example.com/sitemap.xml --max-urls 5000
 ```
 
-To discover sitemap files from a domain, create a key at [sitemapkit.com/register](https://sitemapkit.com/register). The free API plan includes 100 requests per month.
+To discover sitemap files from a domain, create a key at [sitemapkit.com/register](https://sitemapkit.com/register). The free API plan includes 20 processing credits per month. Extraction uses one credit per 1,000 returned URLs, rounded up.
 
 ```bash
 export SITEMAPKIT_API_KEY=sk_live_...
@@ -103,11 +103,12 @@ When `SITEMAPKIT_API_KEY` is set, `extract` uses the API as well. That route add
 
 ## API limits
 
-| Plan | API requests/month | URLs per extraction |
-|------|-------------------:|--------------------:|
-| Free | 100 | 1,000 |
-| Starter | 5,000 | 10,000 |
-| Pro | 50,000 | 50,000 |
+| Plan | Processing credits/month | URLs per extraction |
+|------|-------------------------:|--------------------:|
+| Free | 20 | 1,000 |
+| Starter | 1,000 | 10,000 |
+| Pro | 5,000 | 50,000 |
+| Agency | 20,000 | 50,000 |
 
 See current API and monitoring allowances on the [pricing page](https://sitemapkit.com/pricing).
 

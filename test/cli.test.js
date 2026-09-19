@@ -99,6 +99,25 @@ test("prints extracted locations as a newline-delimited URL list", () => {
   );
 });
 
+test("describes the public CLI intent and current free allowance", async () => {
+  const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
+  const packageMetadata = JSON.parse(
+    await readFile(new URL("../package.json", import.meta.url), "utf8"),
+  );
+
+  assert.match(readme, /^# XML Sitemap Extractor CLI and GitHub Action$/m);
+  assert.match(readme, /free API plan includes 20 processing credits per month/);
+  assert.match(readme, /\| Plan \| Processing credits\/month \| URLs per extraction \|/);
+  assert.match(readme, /\| Free \| 20 \| 1,000 \|/);
+  assert.match(readme, /\| Starter \| 1,000 \| 10,000 \|/);
+  assert.match(readme, /\| Pro \| 5,000 \| 50,000 \|/);
+  assert.match(readme, /\| Agency \| 20,000 \| 50,000 \|/);
+  assert.equal(
+    packageMetadata.description,
+    "XML sitemap extractor CLI and GitHub Action with nested index, gzip, API discovery, and URL output",
+  );
+});
+
 test("maps GitHub Action inputs to a CLI request", () => {
   assert.deepEqual(
     parseActionInputs({
